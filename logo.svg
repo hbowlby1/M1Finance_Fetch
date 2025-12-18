@@ -1,0 +1,39 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for modern look -->
+  <circle cx="100" cy="100" r="95" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2"/>
+  
+  <!-- Data fetching arrow/stream -->
+  <path d="M40 80 Q60 60 80 80 Q100 100 120 80 Q140 60 160 80" 
+        stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Arrow head -->
+  <polygon points="155,75 165,80 155,85" fill="#10b981"/>
+  
+  <!-- Financial chart bars -->
+  <rect x="50" y="120" width="8" height="20" fill="#f59e0b"/>
+  <rect x="65" y="110" width="8" height="30" fill="#f59e0b"/>
+  <rect x="80" y="100" width="8" height="40" fill="#f59e0b"/>
+  <rect x="95" y="115" width="8" height="25" fill="#f59e0b"/>
+  <rect x="110" y="105" width="8" height="35" fill="#f59e0b"/>
+  <rect x="125" y="125" width="8" height="15" fill="#f59e0b"/>
+  
+  <!-- CSV grid pattern -->
+  <g stroke="#e5e7eb" stroke-width="1" fill="none">
+    <line x1="140" y1="110" x2="180" y2="110"/>
+    <line x1="140" y1="125" x2="180" y2="125"/>
+    <line x1="140" y1="140" x2="180" y2="140"/>
+    <line x1="155" y1="105" x2="155" y2="145"/>
+    <line x1="170" y1="105" x2="170" y2="145"/>
+  </g>
+  
+  <!-- CSV data points -->
+  <circle cx="147" cy="117" r="2" fill="#6b7280"/>
+  <circle cx="162" cy="117" r="2" fill="#6b7280"/>
+  <circle cx="177" cy="117" r="2" fill="#6b7280"/>
+  <circle cx="147" cy="132" r="2" fill="#6b7280"/>
+  <circle cx="162" cy="132" r="2" fill="#6b7280"/>
+  <circle cx="177" cy="132" r="2" fill="#6b7280"/>
+  
+  <!-- Text -->
+  <text x="100" y="175" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">M1 FETCH</text>
+</svg>
