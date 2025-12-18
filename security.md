@@ -6,8 +6,8 @@ We actively support the following versions with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| Python 13.11+  | :white_check_mark: |
+| Python < 13.11+ (untested)   | :x:                |
 
 ## Reporting a Vulnerability
 
