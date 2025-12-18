@@ -81,6 +81,14 @@ The application generates CSV files containing the fetched financial data. Files
 
 ## Upcoming Features
  - function to transfer CSV data to Google Sheets (requires)
+ - Docker file for easy deployment
+ - Comprehensive logging system
+ - Unit Testing
+ - CLI interface
+ - Caching for API responses to reduce calls and improve performance
+ - Data Validation for API response
+ - Rate limiting (don't want your account or IP to be blocked now do you)
+ - video on how to use the tool
 
 ## Contributing
 
