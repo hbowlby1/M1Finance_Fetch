@@ -1,5 +1,9 @@
 # M1Finance Fetch
 
+<div align="center">
+  ![M1Finance Fetch Logo](logo.svg)
+</div>
+
 > **Note:** This project is functional and can fetch open tax lots data.
 
 ## Description
@@ -80,7 +84,7 @@ The application generates CSV files containing the fetched financial data. Files
 - Configure API endpoints as needed
 
 ## Upcoming Features
- - function to transfer CSV data to Google Sheets (requires)
+ - function to transfer CSV data to Google Sheets (requires correct GCP API configuration)
  - Docker file for easy deployment
  - Comprehensive logging system
  - Unit Testing
