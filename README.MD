@@ -4,12 +4,12 @@
 
 ## Description
 
-A Python application for fetching financial data from M1 Finance. This tool allows users to retrieve portfolio information, including open and closed tax lots, transaction history, and other financial metrics programmatically.
+A Python application for fetching financial data from M1 Finance. This tool allows users to retrieve portfolio information, including open and closed tax lots, current holdings, and other financial metrics programmatically.
 
 ## Features
 
 - Fetch open and closed tax lots data
-- Retrieve transaction history
+- Retrieve current holdings/portfolio positions
 - Authenticate with M1 Finance API
 - Export data to CSV files
 
@@ -72,6 +72,7 @@ The application generates CSV files containing the fetched financial data. Files
 
 - `open_tax_lots.csv`: Contains open tax lots data including symbols, quantities, cost basis, and unrealized gain/loss information.
 - `closed_tax_lots.csv`: Contains closed tax lots data including symbols, quantities, cost basis, realized gain/loss, and close dates.
+- `holdings.csv`: Contains current portfolio holdings with position details, values, and performance metrics.
 
 ## Configuration
 

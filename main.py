@@ -12,7 +12,7 @@ SEGMENTID = os.getenv("SEGMENT_ID", "")
 ACCOUNTID = os.getenv("ACCOUNT_ID", "")
 OTHERACCOUNTID = os.getenv("OTHER_ACCOUNT_ID", "")
 
-if __name__ == "__main__":
+def fetchM1Data():
     auth = Authenticate(EMAIL, PASSWORD, MFAAUDIENCE, SEGMENTID)
     auth_session = auth.login()
     if auth_session:
@@ -26,6 +26,15 @@ if __name__ == "__main__":
         if closedTaxLots is not None:
             GenerateCSV_instance = GenerateCSV(closedTaxLots)
             GenerateCSV_instance.save_to_csv("closed_tax_lots.csv")
+        #fetch holdings
+        holdings = fetcher.fetchHoldingsCSV()
+        #save holdings to CSV
+        if holdings is not None:
+            GenerateCSV_instance = GenerateCSV(holdings)
+            GenerateCSV_instance.save_to_csv("holdings.csv")
         
     else:
         print("Authentication failed.")
+
+if __name__ == "__main__":
+    fetchM1Data()
