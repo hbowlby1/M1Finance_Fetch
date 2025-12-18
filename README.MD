@@ -1,7 +1,7 @@
 # M1Finance Fetch
 
 <div align="center">
-  ![M1Finance Fetch Logo](logo.svg)
+  <img src="logo.svg" alt="M1Finance Fetch Logo" width="200" height="200">
 </div>
 
 > **Note:** This project is functional and can fetch open tax lots data.
