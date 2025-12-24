@@ -115,7 +115,7 @@ OTHER_ACCOUNT_ID=your_encoded_account_id
 
 ### Feature Toggles
 
-Control application behavior through environment variables:
+Control application behavior handled in state.json:
 
 - `ENABLE_GOOGLE_SHEETS_INTEGRATION`: Enable/disable Google Sheets authentication and data transfer (default: false)
 - `CREDENTIALS_PATH`: Path to your Google API credentials file (default: credentials.json)
