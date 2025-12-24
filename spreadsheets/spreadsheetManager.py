@@ -124,13 +124,12 @@ class spreadsheetManager:
     #     except Exception as e:
     #         print(f"Unexpected error creating spreadsheet: {e}")
     #         return None
+    
     def create_holdings_sheet(self):
         """
         Creates a holdings worksheet and uploads holdings data from CSV
 
         :return: True if successful, False otherwise
-        NOT IN USE UNTIL I FIGURE OUT HOW TO RESOLVE 403 ERRORS WHEN
-        USING SERVICE ACCOUNT TO CREATE SPREADSHEETS.
         """
         try:
             if not self.SpreadSheetID:
@@ -249,8 +248,6 @@ class spreadsheetManager:
 
         :param lot_type: Type of tax lots ("open" or "closed")
         :return: True if successful, False otherwise
-        NOT IN USE UNTIL I FIGURE OUT HOW TO RESOLVE 403 ERRORS WHEN
-        USING SERVICE ACCOUNT TO CREATE SPREADSHEETS.
         """
         try:
             if not self.SpreadSheetID:
