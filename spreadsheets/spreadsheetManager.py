@@ -124,7 +124,6 @@ class spreadsheetManager:
     #     except Exception as e:
     #         print(f"Unexpected error creating spreadsheet: {e}")
     #         return None
-    
     def create_holdings_sheet(self):
         """
         Creates a holdings worksheet and uploads holdings data from CSV
