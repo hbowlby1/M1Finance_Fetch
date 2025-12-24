@@ -1,3 +1,7 @@
 /.env
 /CSV
 /graphql
+credentials.json
+/token.json
+/state.json
+/serviceAccount.json
