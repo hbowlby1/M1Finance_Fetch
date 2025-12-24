@@ -111,10 +111,6 @@ MFA_AUDIENCE=false
 SEGMENT_ID=your_segment_id
 ACCOUNT_ID=your_account_number
 OTHER_ACCOUNT_ID=your_encoded_account_id
-
-# Optional: Google Sheets Integration
-ENABLE_GOOGLE_SHEETS_INTEGRATION=false
-CREDENTIALS_PATH=credentials.json
 ```
 
 ### Feature Toggles
@@ -197,14 +193,14 @@ M1Finance_Fetch/
 
 ### Development Setup
 
-1. Follow the installation steps above
+<!-- 1. Follow the installation steps above
 2. Install additional development dependencies:
    ```bash
    pip install pytest black flake8 mypy
    ```
 3. Run tests: `pytest`
 4. Format code: `black .`
-5. Lint code: `flake8`
+5. Lint code: `flake8` -->
 
 ## License
 
