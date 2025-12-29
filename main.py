@@ -26,54 +26,82 @@ GENERATE_TAX_LOTS_SHEETS = state_data.get("GENERATE_TAX_LOTS_SHEETS", False)
 SPREADSHEET_NAME = state_data.get("SPREADSHEET_NAME", "M1 Finance Data")
 
 def fetchM1Data():
-    auth = Authenticate(EMAIL, PASSWORD, MFAAUDIENCE, SEGMENTID)
-    auth_session = auth.login()
-    creds = None
-    # generate Google Sheets credentials 
-    if ENABLE_GOOGLE_SHEETS_INTEGRATION:
-        creds = auth.auth_google_sheets(credentials_path=CREDENTIALS_PATH)
-        if creds:
-            print("Google Sheets authentication successful.")
+    try:
+        auth = Authenticate(EMAIL, PASSWORD, MFAAUDIENCE, SEGMENTID)
+        auth_session = auth.login()
+        creds = None
+        # generate Google Sheets credentials 
+        if ENABLE_GOOGLE_SHEETS_INTEGRATION:
+            try:
+                creds = auth.auth_google_sheets(credentials_path=CREDENTIALS_PATH)
+                if creds:
+                    print("Google Sheets authentication successful.")
+                else:
+                    print("Google Sheets authentication failed.")
+            except Exception as e:
+                print(f"Error during Google Sheets authentication: {e}")
+                creds = None
+        if auth_session:
+            try:
+                fetcher = FetchCSV(auth_session, SEGMENTID, OTHERACCOUNTID)
+                openTaxLots, closedTaxLots = fetcher.fetchTaxLotsCSVs()
+                #save openTaxLots to CSV
+                if openTaxLots is not None:
+                    try:
+                        GenerateCSV_instance = GenerateCSV(openTaxLots)
+                        if CREATE_CSV_FILES:
+                            GenerateCSV_instance.save_to_csv("open_tax_lots.csv")
+                        else:
+                            print("Skipping CSV generation for open tax lots as per configuration.")
+                    except Exception as e:
+                        print(f"Error saving open tax lots CSV: {e}")
+                #save closedTaxLots to CSV
+                if closedTaxLots is not None:
+                    try:
+                        GenerateCSV_instance = GenerateCSV(closedTaxLots)
+                        if CREATE_CSV_FILES:
+                            GenerateCSV_instance.save_to_csv("closed_tax_lots.csv")
+                        else:
+                            print("Skipping CSV generation for closed tax lots as per configuration.")
+                    except Exception as e:
+                        print(f"Error saving closed tax lots CSV: {e}")
+                #fetch holdings
+                holdings = fetcher.fetchHoldingsCSV()
+                #save holdings to CSV
+                if holdings is not None:
+                    try:
+                        GenerateCSV_instance = GenerateCSV(holdings)
+                        if CREATE_CSV_FILES:
+                            GenerateCSV_instance.save_to_csv("holdings.csv")
+                        else:
+                            print("Skipping CSV generation for holdings as per configuration.")
+                    except Exception as e:
+                        print(f"Error saving holdings CSV: {e}")
+                return creds
+            except Exception as e:
+                print(f"Error during data fetching: {e}")
+                return None
         else:
-            print("Google Sheets authentication failed.")
-    if auth_session:
-        fetcher = FetchCSV(auth_session, SEGMENTID, OTHERACCOUNTID)
-        openTaxLots, closedTaxLots = fetcher.fetchTaxLotsCSVs()
-        #save openTaxLots to CSV
-        if openTaxLots is not None:
-            GenerateCSV_instance = GenerateCSV(openTaxLots)
-            if CREATE_CSV_FILES:
-                GenerateCSV_instance.save_to_csv("open_tax_lots.csv")
-            else:
-                print("Skipping CSV generation for open tax lots as per configuration.")
-        #save closedTaxLots to CSV
-        if closedTaxLots is not None:
-            GenerateCSV_instance = GenerateCSV(closedTaxLots)
-            if CREATE_CSV_FILES:
-                GenerateCSV_instance.save_to_csv("closed_tax_lots.csv")
-            else:
-                print("Skipping CSV generation for closed tax lots as per configuration.")
-        #fetch holdings
-        holdings = fetcher.fetchHoldingsCSV()
-        #save holdings to CSV
-        if holdings is not None:
-            GenerateCSV_instance = GenerateCSV(holdings)
-            if CREATE_CSV_FILES:
-                GenerateCSV_instance.save_to_csv("holdings.csv")
-            else:
-                print("Skipping CSV generation for holdings as per configuration.")
-        return creds
-    else:
-        print("Authentication failed.")
+            print("Authentication failed.")
+            return None
+    except Exception as e:
+        print(f"Unexpected error in fetchM1Data: {e}")
+        return None
         
 
 if __name__ == "__main__":
-    check_for_state_file()
-    creds = fetchM1Data()
-    if creds and ENABLE_GOOGLE_SHEETS_INTEGRATION:
-        sheet_manager = spreadsheetManager(spreadsheetName=SPREADSHEET_NAME,
-                                           credentialsPath = CREDENTIALS_PATH, 
-                                           CSVFolderPath="CSV", 
-                                           createNewSpreadSheet=CREATE_NEW_SPREADSHEET, 
-                                           generateTaxLotsSheets=GENERATE_TAX_LOTS_SHEETS)
-        sheet_manager.run()
+    try:
+        check_for_state_file()
+        creds = fetchM1Data()
+        if creds and ENABLE_GOOGLE_SHEETS_INTEGRATION:
+            try:
+                sheet_manager = spreadsheetManager(spreadsheetName=SPREADSHEET_NAME,
+                                                   credentialsPath = CREDENTIALS_PATH, 
+                                                   CSVFolderPath="CSV", 
+                                                   createNewSpreadSheet=CREATE_NEW_SPREADSHEET, 
+                                                   generateTaxLotsSheets=GENERATE_TAX_LOTS_SHEETS)
+                sheet_manager.run()
+            except Exception as e:
+                print(f"Error in spreadsheet management: {e}")
+    except Exception as e:
+        print(f"Error in main execution: {e}")
