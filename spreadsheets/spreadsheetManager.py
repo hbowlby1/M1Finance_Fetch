@@ -162,27 +162,29 @@ class spreadsheetManager:
                 if df.empty:
                     print("Holdings CSV file is empty.")
                     return False
-                # set columns to respective types
-                df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce")
+                # set columns to respective types and if null or NaN set to None
+                df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce").where(pd.notnull(df["quantity"]), None)
                 # currency columns
                 df["average_share_price"] = pd.to_numeric(
                     df["average_share_price"], errors="coerce"
-                )
-                df["total_cost"] = pd.to_numeric(df["total_cost"], errors="coerce")
+                ).where(pd.notnull(df["average_share_price"]), None)
+                df["total_cost"] = pd.to_numeric(df["total_cost"], errors="coerce").where(pd.notnull(df["total_cost"]), None)
                 df["current_value"] = pd.to_numeric(
                     df["current_value"], errors="coerce"
-                )
+                ).where(pd.notnull(df["current_value"]), None)
                 df["unrealized_gain"] = pd.to_numeric(
                     df["unrealized_gain"], errors="coerce"
-                )
+                ).where(pd.notnull(df["unrealized_gain"]), None)
                 # percentage columns
                 df["unrealized_gain_percent"] = (
                     pd.to_numeric(df["unrealized_gain_percent"], errors="coerce") / 100
-                )
+                ).where(pd.notnull(df["unrealized_gain_percent"]), None)
                 df["maintenance_margin_percent"] = (
                     pd.to_numeric(df["maintenance_margin_percent"], errors="coerce")
                     / 100
-                )
+                ).where(pd.notnull(df["maintenance_margin_percent"]), None)
+                # Replace any remaining NaN with empty string for JSON compatibility
+                df = df.fillna('')
             except pd.errors.EmptyDataError:
                 print("Holdings CSV file is empty or invalid.")
                 return False
