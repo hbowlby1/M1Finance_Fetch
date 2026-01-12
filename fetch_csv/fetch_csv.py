@@ -508,16 +508,21 @@ class FetchCSV:
                 node = edge.get("node")
                 if node:
                     # Flatten the nested structure for CSV
+                    positionSecurity = node.get("positionSecurity") or {}
+                    cost = node.get("cost") or {}
+                    value = node.get("value") or {}
+                    unrealizedGain = node.get("unrealizedGain") or {}
+                    marginability = node.get("marginability") or {}
                     record = {
-                        "symbol": node.get("positionSecurity", {}).get("symbol"),
-                        "descriptor": node.get("positionSecurity", {}).get("descriptor"),
+                        "symbol": positionSecurity.get("symbol"),
+                        "descriptor": positionSecurity.get("descriptor"),
                         "quantity": node.get("quantity"),
-                        "average_share_price": node.get("cost", {}).get("averageSharePrice"),
-                        "total_cost": node.get("cost", {}).get("cost"),
-                        "current_value": node.get("value", {}).get("value"),
-                        "unrealized_gain": node.get("unrealizedGain", {}).get("gain"),
-                        "unrealized_gain_percent": node.get("unrealizedGain", {}).get("gainPercent"),
-                        "maintenance_margin_percent": node.get("marginability", {}).get("maintenanceEquityRequirementPercent")
+                        "average_share_price": cost.get("averageSharePrice"),
+                        "total_cost": cost.get("cost"),
+                        "current_value": value.get("value"),
+                        "unrealized_gain": unrealizedGain.get("gain"),
+                        "unrealized_gain_percent": unrealizedGain.get("gainPercent"),
+                        "maintenance_margin_percent": marginability.get("maintenanceEquityRequirementPercent")
                     }
                     records.append(record)
 
