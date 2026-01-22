@@ -143,6 +143,7 @@ The application also uses a `state.json` file for runtime settings that can be m
 - `SPREADSHEET_NAME`: Name of the Google Spreadsheet to use/update
 - `CREATE_CSV_FILES`: Whether to generate CSV files
 - `GENERATE_TAX_LOTS_SHEETS`: Whether to create tax lots worksheets in Google Sheets
+- `USE_DATABASE`: A feature coming soon that tracks stocks via a simple SQLITE database for a future RAG architecture plan.
 
 Modify `./config/state.json` to customize behavior on the fly. The file is checked and created by the `checkForState` module on startup.
 
