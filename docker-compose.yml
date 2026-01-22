@@ -1,0 +1,8 @@
+services:
+  m1-fetcher:
+    build: .
+    volumes:
+      # If your script outputs CSVs, this maps a folder inside the container
+      # to a folder on the user's desktop so they can actually see the files.
+      - ./output:/app/CSV
+      - ./config:/app/config
