@@ -43,7 +43,7 @@ cd M1Finance_Fetch
    ```
    On first run, the app creates `./config/.env` and `./config/state.json` on your machine and then exits.
 
-2. Edit the config on your machine:
+2. Edit the config on your machine (config folder or via terminal):
    ```bash
    # Open ./config/.env and ./config/state.json in your editor
    ```
@@ -127,12 +127,12 @@ ACCOUNT_ID=your_account_number
 OTHER_ACCOUNT_ID=your_encoded_account_id
 ```
 
-### Feature Toggles
+<!-- ### Feature Toggles
 
 Control application behavior handled in state.json:
 
 - `ENABLE_GOOGLE_SHEETS_INTEGRATION`: Enable/disable Google Sheets authentication and data transfer (default: false)
-- `CREDENTIALS_PATH`: Path to your Google API credentials file (default: credentials.json)
+- `CREDENTIALS_PATH`: Path to your Google API credentials file (default: credentials.json) -->
 
 ### State Configuration
 
@@ -187,7 +187,6 @@ M1Finance_Fetch/
 - Data Validation: Schema validation for API responses
 
 ### Planned
-- Docker Containerization: Easy deployment with Docker
 - CLI Interface: Command-line options for different operations
 - Caching System: API response caching to reduce calls and improve performance
 - Rate Limiting: Intelligent rate limiting to prevent API blocking
@@ -204,9 +203,9 @@ M1Finance_Fetch/
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-### Development Setup
+<!--### Development Setup
 
-<!-- 1. Follow the installation steps above
+ 1. Follow the installation steps above
 2. Install additional development dependencies:
    ```bash
    pip install pytest black flake8 mypy
@@ -225,6 +224,6 @@ This tool is not officially affiliated with M1 Finance. Use at your own risk. Al
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/M1Finance_Fetch/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/M1Finance_Fetch/discussions)
+- **Issues**: [GitHub Issues](https://github.com/hbowlby1/M1Finance_Fetch/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/hbowlby1/M1Finance_Fetch/discussions)
 - **Security**: See SECURITY.md for security-related concerns
