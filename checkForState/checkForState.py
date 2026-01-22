@@ -7,17 +7,18 @@ import os
 
 STATE_FILE = "state.json"
 DEFAULT_STATE = {
-    "ENABLE_GOOGLE_SHEETS_INTEGRATION": True,
+    "ENABLE_GOOGLE_SHEETS_INTEGRATION": False,
     "CREATE_NEW_SPREADSHEET": False,
     "SPREADSHEET_NAME": "M1 Finance Management",
     "CREATE_CSV_FILES": True,
-    "GENERATE_TAX_LOTS_SHEETS": True
+    "GENERATE_TAX_LOTS_SHEETS": True,
+    "USE_DATABASE": False,
 }
 
-def check_for_state_file():
-    if not os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "w") as state_file:
+def check_for_state_file(state_file_path=STATE_FILE):
+    if not os.path.exists(state_file_path):
+        with open(state_file_path, "w") as state_file:
             json.dump(DEFAULT_STATE, state_file, indent=4)
-        print(f"{STATE_FILE} created with default settings.")
+        print(f"{state_file_path} created with default settings.")
     else:
-        print(f"{STATE_FILE} already exists.")
+        print(f"{state_file_path} already exists.")
