@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import numpy as np
 import requests
+import yfinance as yf
 from gspread.exceptions import SpreadsheetNotFound, WorksheetNotFound, APIError
 from gspread.exceptions import SpreadsheetNotFound, WorksheetNotFound, APIError
 
@@ -366,6 +367,139 @@ class spreadsheetManager:
         except Exception as e:
             print(f"Unexpected error creating {lot_type} tax lots sheet: {e}")
             return False
+        
+    # method that generates a securities info sheet to track types of securities
+    def create_securities_info_sheet(self):
+        """
+        Creates a securities info worksheet and uploads securities data from CSV that places the data in the sheet
+        The sheet will need to be manually set up with the graphs.
+
+        :return: True if successful, False otherwise
+        """
+        try:
+            if not self.SpreadSheetID:
+                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                return False
+
+            # fetch the holdings spreadsheet (verify it exists first)
+            sh = self.gc.open_by_key(self.SpreadSheetID)
+            try:
+                sec_worksheet = sh.worksheet("Securities Info")
+                print("Securities Info sheet exists. Updating data...")
+            except WorksheetNotFound:
+                sec_worksheet = sh.add_worksheet(
+                    title="Securities Info", rows="100", cols="20"
+                )
+                print("Created new Securities Info worksheet.")
+            try:
+                holdings_worksheet = sh.worksheet("Holdings")
+                # grab the symbol and current value columns from holdings
+                holdings_data = pd.DataFrame(holdings_worksheet.get_all_records())
+                if holdings_data.empty:
+                    print("Holdings sheet is empty. Cannot create Securities Info sheet.")
+                    return None
+                securities_info = holdings_data[["symbol", "current_value"]].copy()
+                # remove holdings with zero current value or is null or NaN
+                securities_info = securities_info[
+                    (securities_info["current_value"].notnull())
+                    & (securities_info["current_value"] != 0)
+                ]
+                # return the holding information to be passed to the next method for generating new security column
+                return securities_info
+            except WorksheetNotFound:
+                print(
+                    "Could not find Holdings sheet. Cannot create Securities Info sheet."
+                )
+                return None
+                
+        except APIError as e:
+            print(f"Google Sheets API error: {e}")
+            return None
+        except SpreadsheetNotFound:
+            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            return None
+        except PermissionError as e:
+            print(f"Permission error: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error creating securities info sheet: {e}")
+            return None
+        
+    def generate_securities_type_column(self, securities_info_df):
+        """
+        Generates a 'security_type' column in the securities info DataFrame
+        by fetching data from Yahoo Finance API.
+
+        :param securities_info_df: DataFrame with 'symbol' and 'current_value' columns
+        :return: DataFrame with added 'security_type' column
+        """
+        try:
+            if securities_info_df is None:
+                print("Securities info DataFrame is None. Cannot generate security types.")
+                return None
+            if securities_info_df.empty:
+                print("Securities info DataFrame is empty. Cannot generate security types.")
+                return securities_info_df
+
+            def fetch_security_type(symbol):
+                try:
+                    ticker = yf.Ticker(symbol)
+                    info = ticker.info
+                    return info.get("quoteType", "Unknown")
+                except Exception as e:
+                    print(f"Error fetching data for symbol {symbol}: {e}")
+                    return "Unknown"
+
+            securities_info_df["security_type"] = securities_info_df["symbol"].apply(fetch_security_type)
+            print("Security types fetched and added to DataFrame.")
+            return securities_info_df
+
+        except Exception as e:
+            print(f"Unexpected error generating security types: {e}")
+            return securities_info_df
+        
+    def combine_securities_info_with_sheet(self, securities_info_df):
+        """
+        Combines the securities info DataFrame with the Securities Info sheet in Google Sheets.
+
+        :param securities_info_df: DataFrame with 'symbol', 'current_value', and 'security_type' columns
+        :return: True if successful, False otherwise
+        """
+        try:
+            if not self.SpreadSheetID:
+                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                return False
+            
+            if securities_info_df is None:
+                print("Securities info DataFrame is None. Cannot update sheet.")
+                return False
+            if securities_info_df.empty:
+                print("Securities info DataFrame is empty. Cannot update sheet.")
+                return False
+
+            # Open spreadsheet
+            sh = self.gc.open_by_key(self.SpreadSheetID)
+            sec_worksheet = sh.worksheet("Securities Info")
+
+            # Upload data to sheet
+            sec_worksheet.clear()  # Clear existing data
+            sec_worksheet.update([securities_info_df.columns.values.tolist()] + securities_info_df.values.tolist())
+
+            print(f"Securities Info sheet updated with {len(securities_info_df)} rows.")
+            return True
+
+        except APIError as e:
+            print(f"Google Sheets API error: {e}")
+            return False
+        except SpreadsheetNotFound:
+            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            return False
+        except PermissionError as e:
+            print(f"Permission error: {e}")
+            return False
+        except Exception as e:
+            print(f"Unexpected error updating securities info sheet: {e}")
+            return False
 
     def run(self):
         """
@@ -414,6 +548,23 @@ class spreadsheetManager:
                     )
             else:
                 print("Tax lots sheets creation skipped (generateTaxLotsSheets=False)")
+                
+            # create securities info sheet
+            print("Creating securities info sheet...")
+            securities_info_created = self.create_securities_info_sheet()
+            if securities_info_created is None or securities_info_created.empty:
+                print(
+                    "Warning: Failed to create securities info sheet, but continuing..."
+                )
+            else:
+                # generate securities type column
+                securities_info_df = self.generate_securities_type_column(securities_info_created)
+                # combine with sheet
+                combined_success = self.combine_securities_info_with_sheet(securities_info_df)
+                if not combined_success:
+                    print(
+                        "Warning: Failed to update securities info sheet with data, but continuing..."
+                    )
 
             print("Google Sheets data upload process completed.")
             return True
