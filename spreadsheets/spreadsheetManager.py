@@ -414,16 +414,16 @@ class spreadsheetManager:
                 
         except APIError as e:
             print(f"Google Sheets API error: {e}")
-            return False
+            return None
         except SpreadsheetNotFound:
             print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
-            return False
+            return None
         except PermissionError as e:
             print(f"Permission error: {e}")
-            return False
+            return None
         except Exception as e:
             print(f"Unexpected error creating securities info sheet: {e}")
-            return False
+            return None
         
     def generate_securities_type_column(self, securities_info_df):
         """
@@ -437,7 +437,6 @@ class spreadsheetManager:
             if securities_info_df is None:
                 print("Securities info DataFrame is None. Cannot generate security types.")
                 return None
-            print(securities_info_df.head())
             if securities_info_df.empty:
                 print("Securities info DataFrame is empty. Cannot generate security types.")
                 return securities_info_df
@@ -474,7 +473,6 @@ class spreadsheetManager:
             if securities_info_df is None:
                 print("Securities info DataFrame is None. Cannot update sheet.")
                 return False
-            print(securities_info_df.head())
             if securities_info_df.empty:
                 print("Securities info DataFrame is empty. Cannot update sheet.")
                 return False
