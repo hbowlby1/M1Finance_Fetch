@@ -235,7 +235,7 @@ class spreadsheetManager:
             print(f"Google Sheets API error: {e}")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
             return False
         except PermissionError as e:
             print(f"Permission error: {e}")
@@ -359,7 +359,7 @@ class spreadsheetManager:
             print(f"Google Sheets API error: {e}")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
             return False
         except PermissionError as e:
             print(f"Permission error: {e}")
@@ -416,7 +416,7 @@ class spreadsheetManager:
             print(f"Google Sheets API error: {e}")
             return None
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
             return None
         except PermissionError as e:
             print(f"Permission error: {e}")
@@ -492,7 +492,7 @@ class spreadsheetManager:
             print(f"Google Sheets API error: {e}")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.spreadSheetID} not found.")
+            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
             return False
         except PermissionError as e:
             print(f"Permission error: {e}")
