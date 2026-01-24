@@ -113,6 +113,13 @@ When Google Sheets integration is enabled, the application automatically creates
 
 Worksheets are automatically formatted with USD currency patterns and percentage displays for better readability. Data is cleared and refreshed on each run to ensure up-to-date information.
 
+### Create a Holdings Pie Chart (Google Sheets)
+
+1. Open your spreadsheet and go to the `Securities Info` sheet.
+2. Click the `Insert` dropdown in the top toolbar.
+3. Select `Chart`. Google Sheets will auto-generate a pie chart of your holdings.
+4. Customize the chart as desired using the chart editor.
+
 ## Configuration
 
 The application uses environment variables for all configuration. When using Docker, the app creates `./config/.env` on first run. For local development, the app uses the same `/app/config/.env` path. The file should contain:
