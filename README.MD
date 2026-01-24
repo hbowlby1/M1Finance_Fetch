@@ -24,7 +24,7 @@ A Python application for fetching financial data from M1 Finance. This tool allo
 ## Installation
 
 Prerequisites:
-- Docker Desktop (for the recommended Docker workflow)
+- Docker Desktop (for the recommended Docker workflow; includes Docker Compose v2)
 - Python 3.10+ (only if you plan to run locally)
 
 Clone the repository:
@@ -42,6 +42,7 @@ cd M1Finance_Fetch
    docker compose up --build
    ```
    On first run, the app creates `./config/.env` and `./config/state.json` on your machine and then exits.
+   If you only have `docker-compose` (v1), use that instead of `docker compose`.
 
 2. Edit the config on your machine (config folder or via terminal):
    ```bash
@@ -55,12 +56,22 @@ cd M1Finance_Fetch
 
 ### Local (development)
 
-1. Ensure the virtual environment is activated.
-2. Run the main script:
+1. Install and ensure the virtual environment is activated:
+    ```bash
+    python -m venv vir
+    .\vir\Scripts\activate # windows (PowerShell)
+    source vir/bin/activate # mac/linux
+    ```
+2. Ensure you are in the virtual environment, then install dependencies:
    ```bash
-   python main.py
+   pip install -r requirements.txt
+   
    ```
-3. The app creates `./config/.env` and `./config/state.json` if they do not exist. Update them and run again.
+3. Run the program once to generate blank env and state.json files for later
+    ```bash
+    python main.py
+    ```
+4. The app creates `./config/.env` and `./config/state.json` if they do not exist. Update them and run again.
 
 ### Environment Variables (applies to both)
 
