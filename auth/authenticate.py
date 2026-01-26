@@ -1,11 +1,14 @@
 import time
 import requests
+import logging
 
 from google.oauth2 import service_account
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets",
           "https://www.googleapis.com/auth/drive.file"]
+
+logger = logging.getLogger(__name__)
 
 
 class Authenticate:
@@ -80,8 +83,8 @@ class Authenticate:
             session.access_token = data.get("data", {}).get("authenticate", {}).get("outcome", {}).get("accessToken", "")
             session.refresh_token = data.get("data", {}).get("authenticate", {}).get("outcome", {}).get("refreshToken", "")
             return session
-        except Exception as e:
-            print(f"Failed to authenticate: {e}")
+        except Exception:
+            logger.exception("Failed to authenticate.")
             return None
 
     def auth_google_sheets(self, credentials_path="credentials.json"):
@@ -91,6 +94,6 @@ class Authenticate:
                 credentials_path, scopes=SCOPES
             )
             return creds
-        except Exception as e:
-            print(f"Failed to authenticate with Google Service Account: {e}")
+        except Exception:
+            logger.exception("Failed to authenticate with Google Service Account.")
             return None

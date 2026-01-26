@@ -6,6 +6,8 @@ from generateCSV.generateCSV import GenerateCSV
 import json
 from checkForState import check_for_state_file
 from spreadsheets.spreadsheetManager import spreadsheetManager
+from logger.logger import setup_logging
+import logging
 # from database.database_setup import Asset coming soon
 
 CONFIG_DIR = os.getenv("CONFIG_DIR", os.path.join(os.getcwd(), "config"))
@@ -40,23 +42,18 @@ def ensure_env_file():
     os.makedirs(CONFIG_DIR, exist_ok=True)
     if not os.path.exists(ENV_FILE):
         with open(ENV_FILE, "w", encoding="utf-8") as env_file:
-            env_file.write(
-                "# Fill in your settings, then re-run the app.\n"
-                "# EMAIL and PASSWORD are required for login.\n"
-            )
             env_file.write("\n".join(ENV_TEMPLATE))
-            env_file.write("\n")
-        print(f"{ENV_FILE} created with placeholder settings.")
+        logger.info("%s created with placeholder settings.", ENV_FILE)
     else:
-        print(f"{ENV_FILE} already exists.")
+        logger.info("%s already exists.", ENV_FILE)
         
 def ensure_service_account_file():
     if not os.path.exists(SERVICE_ACCOUNT_FILE):
         with open(SERVICE_ACCOUNT_FILE, "w", encoding="utf-8") as sa_file:
             json.dump(SERVICE_ACCOUNT_TEMPLATE, sa_file, indent=4)
-        print(f"{SERVICE_ACCOUNT_FILE} created with placeholder settings.")
+        logger.info("%s created with placeholder settings.", SERVICE_ACCOUNT_FILE)
     else:
-        print(f"{SERVICE_ACCOUNT_FILE} already exists.")
+        logger.info("%s already exists.", SERVICE_ACCOUNT_FILE)
     
 
 
@@ -67,9 +64,19 @@ def load_state_data():
         return json.load(state_file)
 
 state_data = load_state_data()
+
+# ***** LOGGING SETUP *****
+USE_LOGGING = state_data.get("USE_LOGGING", True)
+LOG_FILE_NAME = state_data.get("LOG_FILE_NAME", "app.log")
+# check for logging setup
+setup_logging(log_file=LOG_FILE_NAME, level=logging.INFO, enabled=USE_LOGGING)
+logger = logging.getLogger(__name__)
+# ***** END LOGGING SETUP *****
+
 ensure_env_file()
 ensure_service_account_file()
 load_dotenv(ENV_FILE)
+
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 MFAAUDIENCE = os.getenv("MFA_AUDIENCE", "false").lower() == "true"
@@ -81,7 +88,7 @@ CREDENTIALS_PATH = os.path.join(CONFIG_DIR, "serviceAccount.json")
 CREATE_NEW_SPREADSHEET = state_data.get("CREATE_NEW_SPREADSHEET", False)
 CREATE_CSV_FILES = state_data.get("CREATE_CSV_FILES", False)
 GENERATE_TAX_LOTS_SHEETS = state_data.get("GENERATE_TAX_LOTS_SHEETS", False)
-SPREADSHEET_NAME = state_data.get("SPREADSHEET_NAME", "M1 Finance Data")
+SPREADSHEET_NAME = state_data.get("SPREADSHEET_NAME", "M1 Finance Management")
 USE_DATABASE = state_data.get("USE_DATABASE", False)
 
 def fetchM1Data():
@@ -94,11 +101,11 @@ def fetchM1Data():
             try:
                 creds = auth.auth_google_sheets(credentials_path=CREDENTIALS_PATH)
                 if creds:
-                    print("Google Sheets authentication successful.")
+                    logger.info("Google Sheets authentication successful.")
                 else:
-                    print("Google Sheets authentication failed.")
-            except Exception as e:
-                print(f"Error during Google Sheets authentication: {e}")
+                    logger.error("Google Sheets authentication failed.")
+            except Exception:
+                logger.exception("Error during Google Sheets authentication.")
                 creds = None
         if auth_session:
             try:
@@ -111,9 +118,9 @@ def fetchM1Data():
                         if CREATE_CSV_FILES:
                             GenerateCSV_instance.save_to_csv("open_tax_lots.csv")
                         else:
-                            print("Skipping CSV generation for open tax lots as per configuration.")
-                    except Exception as e:
-                        print(f"Error saving open tax lots CSV: {e}")
+                            logger.info("Skipping CSV generation for open tax lots as per configuration.")
+                    except Exception:
+                        logger.exception("Error saving open tax lots CSV.")
                 #save closedTaxLots to CSV
                 if closedTaxLots is not None:
                     try:
@@ -121,9 +128,9 @@ def fetchM1Data():
                         if CREATE_CSV_FILES:
                             GenerateCSV_instance.save_to_csv("closed_tax_lots.csv")
                         else:
-                            print("Skipping CSV generation for closed tax lots as per configuration.")
-                    except Exception as e:
-                        print(f"Error saving closed tax lots CSV: {e}")
+                            logger.info("Skipping CSV generation for closed tax lots as per configuration.")
+                    except Exception:
+                        logger.exception("Error saving closed tax lots CSV.")
                 #fetch holdings
                 holdings = fetcher.fetchHoldingsCSV()
                 #save holdings to CSV
@@ -133,22 +140,23 @@ def fetchM1Data():
                         if CREATE_CSV_FILES:
                             GenerateCSV_instance.save_to_csv("holdings.csv")
                         else:
-                            print("Skipping CSV generation for holdings as per configuration.")
-                    except Exception as e:
-                        print(f"Error saving holdings CSV: {e}")
+                            logger.info("Skipping CSV generation for holdings as per configuration.")
+                    except Exception:
+                        logger.exception("Error saving holdings CSV.")
                 return creds
-            except Exception as e:
-                print(f"Error during data fetching: {e}")
+            except Exception:
+                logger.exception("Error during data fetching.")
                 return None
         else:
-            print("Authentication failed.")
+            logger.error("Authentication failed.")
             return None
-    except Exception as e:
-        print(f"Unexpected error in fetchM1Data: {e}")
+    except Exception:
+        logger.exception("Unexpected error in fetchM1Data.")
         return None
         
 
 if __name__ == "__main__":
+    logger.info("Application started.")
     try:
         creds = fetchM1Data()
         #check and initialize database coming soon
@@ -157,6 +165,7 @@ if __name__ == "__main__":
         #     #insert assets from generated CSVs into database
         #     Asset.insert_asset()
         if creds and ENABLE_GOOGLE_SHEETS_INTEGRATION:
+            logger.info("Starting spreadsheet management.")
             try:
                 sheet_manager = spreadsheetManager(spreadsheetName=SPREADSHEET_NAME,
                                                    credentialsPath = CREDENTIALS_PATH, 
@@ -164,7 +173,7 @@ if __name__ == "__main__":
                                                    createNewSpreadSheet=CREATE_NEW_SPREADSHEET, 
                                                    generateTaxLotsSheets=GENERATE_TAX_LOTS_SHEETS)
                 sheet_manager.run()
-            except Exception as e:
-                print(f"Error in spreadsheet management: {e}")
-    except Exception as e:
-        print(f"Error in main execution: {e}")
+            except Exception:
+                logger.exception("Error in spreadsheet management.")
+    except Exception:
+        logger.exception("Error in main execution.")
