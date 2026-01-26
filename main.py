@@ -66,10 +66,13 @@ def load_state_data():
 state_data = load_state_data()
 
 # ***** LOGGING SETUP *****
+LOGS_DIR = os.path.join(os.getcwd(), "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
 USE_LOGGING = state_data.get("USE_LOGGING", True)
 LOG_FILE_NAME = state_data.get("LOG_FILE_NAME", "app.log")
+LOG_FILE_PATH = os.path.join(LOGS_DIR, LOG_FILE_NAME)
 # check for logging setup
-setup_logging(log_file=LOG_FILE_NAME, level=logging.INFO, enabled=USE_LOGGING)
+setup_logging(log_file=LOG_FILE_PATH, level=logging.INFO, enabled=USE_LOGGING)
 logger = logging.getLogger(__name__)
 # ***** END LOGGING SETUP *****
 
