@@ -2,6 +2,9 @@ import time
 import pandas as pd
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FetchCSV:
@@ -100,7 +103,7 @@ class FetchCSV:
             json_data = response.json()
             # Check for GraphQL errors
             if "errors" in json_data:
-                print(f"GraphQL errors for {lot_type}: {json_data['errors']}")
+                logger.error("GraphQL errors for %s: %s", lot_type, json_data["errors"])
                 return None
 
             ### fetch the data and convert to CSV DataFrame ###
@@ -109,7 +112,7 @@ class FetchCSV:
             # Check for pagination
             tax_lots = json_data.get("data", {}).get("node", {}).get("taxLots")
             if not tax_lots:
-                print(f"No {lot_type.lower()} tax lots data found in response.")
+                logger.warning("No %s tax lots data found in response.", lot_type.lower())
                 return pd.DataFrame()  # Return empty DataFrame
 
             page_info = tax_lots.get("pageInfo", {})
@@ -131,23 +134,23 @@ class FetchCSV:
                         response.raise_for_status()
                         json_data = response.json()
                         if "errors" in json_data:
-                            print(f"GraphQL errors in {lot_type} pagination: {json_data['errors']}")
+                            logger.error("GraphQL errors in %s pagination: %s", lot_type, json_data["errors"])
                             break
                         tax_lots = json_data.get("data", {}).get("node", {}).get("taxLots")
                         if not tax_lots:
                             break
                         page_info = tax_lots.get("pageInfo", {})
                         nextPage = page_info.get("hasNextPage", False)
-                    except requests.exceptions.RequestException as e:
-                        print(f"Request failed during {lot_type} pagination: {e}")
+                    except requests.exceptions.RequestException:
+                        logger.exception("Request failed during %s pagination.", lot_type)
                         break
-                    except ValueError as e:
-                        print(f"Failed to parse JSON during {lot_type} pagination: {e}")
+                    except ValueError:
+                        logger.exception("Failed to parse JSON during %s pagination.", lot_type)
                         break
 
             # Convert to DataFrame
             if not data_list:
-                print(f"No {lot_type.lower()} data to convert to DataFrame.")
+                logger.warning("No %s data to convert to DataFrame.", lot_type.lower())
                 return pd.DataFrame()
 
             records = []
@@ -157,20 +160,20 @@ class FetchCSV:
                     records.append(node)
 
             df = pd.DataFrame.from_records(records)
-            print(f"Successfully fetched {lot_type.lower()} tax lots data.")
+            logger.info("Successfully fetched %s tax lots data.", lot_type.lower())
             return df
 
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed for {lot_type}: {e}")
+        except requests.exceptions.RequestException:
+            logger.exception("Request failed for %s.", lot_type)
             return None
-        except ValueError as e:
-            print(f"Failed to parse JSON response for {lot_type}: {e}")
+        except ValueError:
+            logger.exception("Failed to parse JSON response for %s.", lot_type)
             return None
-        except KeyError as e:
-            print(f"Missing expected key in {lot_type} response: {e}")
+        except KeyError:
+            logger.exception("Missing expected key in %s response.", lot_type)
             return None
-        except Exception as e:
-            print(f"An unexpected error occurred for {lot_type}: {e}")
+        except Exception:
+            logger.exception("An unexpected error occurred for %s.", lot_type)
             return None
         
     def fetchHoldingsCSV(self):
@@ -445,7 +448,7 @@ class FetchCSV:
             json_data = response.json()
             # Check for GraphQL errors
             if "errors" in json_data:
-                print(f"GraphQL errors for holdings: {json_data['errors']}")
+                logger.error("GraphQL errors for holdings: %s", json_data["errors"])
                 return None
 
             ### fetch the data and convert to CSV DataFrame ###
@@ -454,12 +457,12 @@ class FetchCSV:
             # Check for pagination
             investments = json_data.get("data", {}).get("account", {}).get("balance", {}).get("investments")
             if not investments:
-                print("No holdings data found in response.")
+                logger.warning("No holdings data found in response.")
                 return pd.DataFrame()  # Return empty DataFrame
 
             positions = investments.get("positions")
             if not positions:
-                print("No positions data found in response.")
+                logger.warning("No positions data found in response.")
                 return pd.DataFrame()
 
             page_info = positions.get("pageInfo", {})
@@ -481,7 +484,7 @@ class FetchCSV:
                         response.raise_for_status()
                         json_data = response.json()
                         if "errors" in json_data:
-                            print(f"GraphQL errors in holdings pagination: {json_data['errors']}")
+                            logger.error("GraphQL errors in holdings pagination: %s", json_data["errors"])
                             break
                         investments = json_data.get("data", {}).get("account", {}).get("balance", {}).get("investments")
                         if not investments:
@@ -491,16 +494,16 @@ class FetchCSV:
                             break
                         page_info = positions.get("pageInfo", {})
                         nextPage = page_info.get("hasNextPage", False)
-                    except requests.exceptions.RequestException as e:
-                        print(f"Request failed during holdings pagination: {e}")
+                    except requests.exceptions.RequestException:
+                        logger.exception("Request failed during holdings pagination.")
                         break
-                    except ValueError as e:
-                        print(f"Failed to parse JSON during holdings pagination: {e}")
+                    except ValueError:
+                        logger.exception("Failed to parse JSON during holdings pagination.")
                         break
 
             # Convert to DataFrame
             if not data_list:
-                print("No holdings data to convert to DataFrame.")
+                logger.warning("No holdings data to convert to DataFrame.")
                 return pd.DataFrame()
 
             records = []
@@ -527,18 +530,18 @@ class FetchCSV:
                     records.append(record)
 
             df = pd.DataFrame.from_records(records)
-            print("Successfully fetched holdings data.")
+            logger.info("Successfully fetched holdings data.")
             return df
 
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed for holdings: {e}")
+        except requests.exceptions.RequestException:
+            logger.exception("Request failed for holdings.")
             return None
-        except ValueError as e:
-            print(f"Failed to parse JSON response for holdings: {e}")
+        except ValueError:
+            logger.exception("Failed to parse JSON response for holdings.")
             return None
-        except KeyError as e:
-            print(f"Missing expected key in holdings response: {e}")
+        except KeyError:
+            logger.exception("Missing expected key in holdings response.")
             return None
-        except Exception as e:
-            print(f"An unexpected error occurred for holdings: {e}")
+        except Exception:
+            logger.exception("An unexpected error occurred for holdings.")
             return None

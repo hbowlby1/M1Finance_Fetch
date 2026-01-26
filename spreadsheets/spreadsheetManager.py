@@ -4,6 +4,7 @@ data using the Google Sheets API mixed with gsheets
 """
 
 import os
+import logging
 import gspread
 import json
 import pandas as pd
@@ -11,7 +12,8 @@ import numpy as np
 import requests
 import yfinance as yf
 from gspread.exceptions import SpreadsheetNotFound, WorksheetNotFound, APIError
-from gspread.exceptions import SpreadsheetNotFound, WorksheetNotFound, APIError
+
+logger = logging.getLogger(__name__)
 
 
 class spreadsheetManager:
@@ -39,10 +41,10 @@ class spreadsheetManager:
                 )
 
         except FileNotFoundError as e:
-            print(f"Initialization error: {e}")
+            logger.error("Initialization error: %s", e)
             raise
-        except Exception as e:
-            print(f"Unexpected error during initialization: {e}")
+        except Exception:
+            logger.exception("Unexpected error during initialization.")
             raise
 
     def authenticate_google_sheets(self):
@@ -54,15 +56,15 @@ class spreadsheetManager:
         try:
             # Validate credentials file exists
             if not os.path.exists(self.credentialsPath):
-                print(f"Credentials file not found at {self.credentialsPath}")
+                logger.error("Credentials file not found at %s", self.credentialsPath)
                 return None
 
             # Initialize gspread client
             self.gc = gspread.service_account(filename=self.credentialsPath)
             return self.gc
 
-        except Exception as e:
-            print(f"Google Sheets authentication error: {e}")
+        except Exception:
+            logger.exception("Google Sheets authentication error.")
             return None
 
     def fetch_spreadsheet(self):
@@ -76,10 +78,10 @@ class spreadsheetManager:
             self.SpreadSheetID = sh.id
             return sh
         except SpreadsheetNotFound:
-            print(f"Spreadsheet named '{self.spreadsheetName}' not found.")
+            logger.warning("Spreadsheet named '%s' not found.", self.spreadsheetName)
             return None
-        except Exception as e:
-            print(f"Error fetching spreadsheet: {e}")
+        except Exception:
+            logger.exception("Error fetching spreadsheet.")
             return None
 
     # def create_spreadsheet(self, title="M1 Finance Data"):
@@ -133,12 +135,12 @@ class spreadsheetManager:
         """
         try:
             if not self.SpreadSheetID:
-                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                logger.error("Spreadsheet ID is not set. Please create a spreadsheet first.")
                 return False
 
             # Validate CSV folder exists
             if not os.path.exists(self.CSVFolderPath):
-                print(f"CSV folder not found at {self.CSVFolderPath}")
+                logger.error("CSV folder not found at %s", self.CSVFolderPath)
                 return False
 
             # Open spreadsheet
@@ -147,21 +149,21 @@ class spreadsheetManager:
             # Check if holdings sheet already exists
             try:
                 worksheet = sh.worksheet("Holdings")
-                print("Holdings sheet already exists. Updating data...")
+                logger.info("Holdings sheet already exists. Updating data...")
             except WorksheetNotFound:
                 worksheet = sh.add_worksheet(title="Holdings", rows="100", cols="20")
-                print("Created new Holdings worksheet.")
+                logger.info("Created new Holdings worksheet.")
 
             # Validate and read CSV file
             holdings_csv_path = os.path.join(self.CSVFolderPath, "holdings.csv")
             if not os.path.exists(holdings_csv_path):
-                print(f"Holdings CSV file not found at {holdings_csv_path}")
+                logger.error("Holdings CSV file not found at %s", holdings_csv_path)
                 return False
 
             try:
                 df = pd.read_csv(holdings_csv_path)
                 if df.empty:
-                    print("Holdings CSV file is empty.")
+                    logger.warning("Holdings CSV file is empty.")
                     return False
                 # set columns to respective types and if null or NaN set to None
                 df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce").where(pd.notnull(df["quantity"]), None)
@@ -187,10 +189,10 @@ class spreadsheetManager:
                 # Replace any remaining NaN with empty string for JSON compatibility
                 df = df.fillna('')
             except pd.errors.EmptyDataError:
-                print("Holdings CSV file is empty or invalid.")
+                logger.error("Holdings CSV file is empty or invalid.")
                 return False
-            except pd.errors.ParserError as e:
-                print(f"Error parsing holdings CSV: {e}")
+            except pd.errors.ParserError:
+                logger.exception("Error parsing holdings CSV.")
                 return False
 
             # Upload data to sheet
@@ -228,20 +230,20 @@ class spreadsheetManager:
                         f"{chr(64 + col_index)}2:{chr(64 + col_index)}{len(df)+1}",
                         percentage_format,
                     )
-            print("Holdings sheet updated with data successfully.")
+            logger.info("Holdings sheet updated with data successfully.")
             return True
 
-        except APIError as e:
-            print(f"Google Sheets API error: {e}")
+        except APIError:
+            logger.exception("Google Sheets API error.")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
+            logger.error("Spreadsheet with ID %s not found.", self.SpreadSheetID)
             return False
-        except PermissionError as e:
-            print(f"Permission error: {e}")
+        except PermissionError:
+            logger.exception("Permission error.")
             return False
-        except Exception as e:
-            print(f"Unexpected error creating holdings sheet: {e}")
+        except Exception:
+            logger.exception("Unexpected error creating holdings sheet.")
             return False
 
     def create_tax_lots_sheet(self, lot_type="open"):
@@ -253,17 +255,17 @@ class spreadsheetManager:
         """
         try:
             if not self.SpreadSheetID:
-                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                logger.error("Spreadsheet ID is not set. Please create a spreadsheet first.")
                 return False
 
             # Validate lot_type parameter
             if lot_type not in ["open", "closed"]:
-                print(f"Invalid lot_type: {lot_type}. Must be 'open' or 'closed'.")
+                logger.error("Invalid lot_type: %s. Must be 'open' or 'closed'.", lot_type)
                 return False
 
             # Validate CSV folder exists
             if not os.path.exists(self.CSVFolderPath):
-                print(f"CSV folder not found at {self.CSVFolderPath}")
+                logger.error("CSV folder not found at %s", self.CSVFolderPath)
                 return False
 
             # Open spreadsheet
@@ -275,25 +277,27 @@ class spreadsheetManager:
             # Check if tax lots sheet already exists
             try:
                 worksheet = sh.worksheet(sheet_title)
-                print(f"{sheet_title} sheet already exists. Updating data...")
+                logger.info("%s sheet already exists. Updating data...", sheet_title)
             except WorksheetNotFound:
                 worksheet = sh.add_worksheet(title=sheet_title, rows="100", cols="20")
-                print(f"Created new {sheet_title} worksheet.")
+                logger.info("Created new %s worksheet.", sheet_title)
 
             # Validate and read CSV file
             tax_lots_csv_path = os.path.join(
                 self.CSVFolderPath, f"{lot_type}_tax_lots.csv"
             )
             if not os.path.exists(tax_lots_csv_path):
-                print(
-                    f"{lot_type.capitalize()} tax lots CSV file not found at {tax_lots_csv_path}"
+                logger.error(
+                    "%s tax lots CSV file not found at %s",
+                    lot_type.capitalize(),
+                    tax_lots_csv_path,
                 )
                 return False
 
             try:
                 df = pd.read_csv(tax_lots_csv_path)
                 if df.empty:
-                    print(f"{lot_type.capitalize()} tax lots CSV file is empty.")
+                    logger.warning("%s tax lots CSV file is empty.", lot_type.capitalize())
                     return False
                 # column cleanup and type setting
                 df["symbol"] = df["symbol"].astype(str)
@@ -325,10 +329,10 @@ class spreadsheetManager:
                 df.replace({pd.NA: None, np.nan: None}, inplace=True)
 
             except pd.errors.EmptyDataError:
-                print(f"{lot_type.capitalize()} tax lots CSV file is empty or invalid.")
+                logger.error("%s tax lots CSV file is empty or invalid.", lot_type.capitalize())
                 return False
-            except pd.errors.ParserError as e:
-                print(f"Error parsing {lot_type} tax lots CSV: {e}")
+            except pd.errors.ParserError:
+                logger.exception("Error parsing %s tax lots CSV.", lot_type)
                 return False
 
             # Upload data to sheet
@@ -352,20 +356,20 @@ class spreadsheetManager:
                         f"{chr(64 + col_index)}2:{chr(64 + col_index)}{len(df)+1}",
                         currency_format,
                     )
-            print(f"{sheet_title} sheet updated with data successfully.")
+            logger.info("%s sheet updated with data successfully.", sheet_title)
             return True
 
-        except APIError as e:
-            print(f"Google Sheets API error: {e}")
+        except APIError:
+            logger.exception("Google Sheets API error.")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
+            logger.error("Spreadsheet with ID %s not found.", self.SpreadSheetID)
             return False
-        except PermissionError as e:
-            print(f"Permission error: {e}")
+        except PermissionError:
+            logger.exception("Permission error.")
             return False
-        except Exception as e:
-            print(f"Unexpected error creating {lot_type} tax lots sheet: {e}")
+        except Exception:
+            logger.exception("Unexpected error creating %s tax lots sheet.", lot_type)
             return False
         
     # method that generates a securities info sheet to track types of securities
@@ -378,25 +382,25 @@ class spreadsheetManager:
         """
         try:
             if not self.SpreadSheetID:
-                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                logger.error("Spreadsheet ID is not set. Please create a spreadsheet first.")
                 return False
 
             # fetch the holdings spreadsheet (verify it exists first)
             sh = self.gc.open_by_key(self.SpreadSheetID)
             try:
                 sec_worksheet = sh.worksheet("Securities Info")
-                print("Securities Info sheet exists. Updating data...")
+                logger.info("Securities Info sheet exists. Updating data...")
             except WorksheetNotFound:
                 sec_worksheet = sh.add_worksheet(
                     title="Securities Info", rows="100", cols="20"
                 )
-                print("Created new Securities Info worksheet.")
+                logger.info("Created new Securities Info worksheet.")
             try:
                 holdings_worksheet = sh.worksheet("Holdings")
                 # grab the symbol and current value columns from holdings
                 holdings_data = pd.DataFrame(holdings_worksheet.get_all_records())
                 if holdings_data.empty:
-                    print("Holdings sheet is empty. Cannot create Securities Info sheet.")
+                    logger.warning("Holdings sheet is empty. Cannot create Securities Info sheet.")
                     return None
                 securities_info = holdings_data[["symbol", "current_value"]].copy()
                 # remove holdings with zero current value or is null or NaN
@@ -407,22 +411,20 @@ class spreadsheetManager:
                 # return the holding information to be passed to the next method for generating new security column
                 return securities_info
             except WorksheetNotFound:
-                print(
-                    "Could not find Holdings sheet. Cannot create Securities Info sheet."
-                )
+                logger.error("Could not find Holdings sheet. Cannot create Securities Info sheet.")
                 return None
                 
-        except APIError as e:
-            print(f"Google Sheets API error: {e}")
+        except APIError:
+            logger.exception("Google Sheets API error.")
             return None
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
+            logger.error("Spreadsheet with ID %s not found.", self.SpreadSheetID)
             return None
-        except PermissionError as e:
-            print(f"Permission error: {e}")
+        except PermissionError:
+            logger.exception("Permission error.")
             return None
-        except Exception as e:
-            print(f"Unexpected error creating securities info sheet: {e}")
+        except Exception:
+            logger.exception("Unexpected error creating securities info sheet.")
             return None
         
     def generate_securities_type_column(self, securities_info_df):
@@ -435,10 +437,10 @@ class spreadsheetManager:
         """
         try:
             if securities_info_df is None:
-                print("Securities info DataFrame is None. Cannot generate security types.")
+                logger.error("Securities info DataFrame is None. Cannot generate security types.")
                 return None
             if securities_info_df.empty:
-                print("Securities info DataFrame is empty. Cannot generate security types.")
+                logger.warning("Securities info DataFrame is empty. Cannot generate security types.")
                 return securities_info_df
 
             def fetch_security_type(symbol):
@@ -446,16 +448,16 @@ class spreadsheetManager:
                     ticker = yf.Ticker(symbol)
                     info = ticker.info
                     return info.get("quoteType", "Unknown")
-                except Exception as e:
-                    print(f"Error fetching data for symbol {symbol}: {e}")
+                except Exception:
+                    logger.exception("Error fetching data for symbol %s.", symbol)
                     return "Unknown"
 
             securities_info_df["security_type"] = securities_info_df["symbol"].apply(fetch_security_type)
-            print("Security types fetched and added to DataFrame.")
+            logger.info("Security types fetched and added to DataFrame.")
             return securities_info_df
 
-        except Exception as e:
-            print(f"Unexpected error generating security types: {e}")
+        except Exception:
+            logger.exception("Unexpected error generating security types.")
             return securities_info_df
         
     def combine_securities_info_with_sheet(self, securities_info_df):
@@ -467,14 +469,14 @@ class spreadsheetManager:
         """
         try:
             if not self.SpreadSheetID:
-                print("Spreadsheet ID is not set. Please create a spreadsheet first.")
+                logger.error("Spreadsheet ID is not set. Please create a spreadsheet first.")
                 return False
             
             if securities_info_df is None:
-                print("Securities info DataFrame is None. Cannot update sheet.")
+                logger.error("Securities info DataFrame is None. Cannot update sheet.")
                 return False
             if securities_info_df.empty:
-                print("Securities info DataFrame is empty. Cannot update sheet.")
+                logger.warning("Securities info DataFrame is empty. Cannot update sheet.")
                 return False
 
             # Open spreadsheet
@@ -485,20 +487,20 @@ class spreadsheetManager:
             sec_worksheet.clear()  # Clear existing data
             sec_worksheet.update([securities_info_df.columns.values.tolist()] + securities_info_df.values.tolist())
 
-            print(f"Securities Info sheet updated with {len(securities_info_df)} rows.")
+            logger.info("Securities Info sheet updated with %s rows.", len(securities_info_df))
             return True
 
-        except APIError as e:
-            print(f"Google Sheets API error: {e}")
+        except APIError:
+            logger.exception("Google Sheets API error.")
             return False
         except SpreadsheetNotFound:
-            print(f"Spreadsheet with ID {self.SpreadSheetID} not found.")
+            logger.error("Spreadsheet with ID %s not found.", self.SpreadSheetID)
             return False
-        except PermissionError as e:
-            print(f"Permission error: {e}")
+        except PermissionError:
+            logger.exception("Permission error.")
             return False
-        except Exception as e:
-            print(f"Unexpected error updating securities info sheet: {e}")
+        except Exception:
+            logger.exception("Unexpected error updating securities info sheet.")
             return False
 
     def run(self):
@@ -508,16 +510,16 @@ class spreadsheetManager:
         :return: True if successful, False otherwise
         """
         try:
-            print("Starting Google Sheets data upload process...")
+            logger.info("Starting Google Sheets data upload process...")
             # Authenticate Google Sheets
             self.gc = self.authenticate_google_sheets()
             if not self.gc:
-                print("Google Sheets authentication failed. Aborting.")
+                logger.error("Google Sheets authentication failed. Aborting.")
                 return False
             # Fetch spreadsheet
             sh = self.fetch_spreadsheet()
             if not sh:
-                print("Failed to fetch spreadsheet. Aborting.")
+                logger.error("Failed to fetch spreadsheet. Aborting.")
                 return False
 
             # Create or get spreadsheet
@@ -527,48 +529,40 @@ class spreadsheetManager:
             #     return False
 
             # Create holdings sheet
-            print("Creating holdings sheet...")
+            logger.info("Creating holdings sheet...")
             holdings_created = self.create_holdings_sheet()
             if not holdings_created:
-                print("Warning: Failed to create holdings sheet, but continuing...")
+                logger.warning("Failed to create holdings sheet, but continuing...")
 
             # Create tax lots sheets if requested
             if self.generateTaxLotsSheets:
-                print("Creating tax lots sheets...")
+                logger.info("Creating tax lots sheets...")
                 open_tax_lots_created = self.create_tax_lots_sheet(lot_type="open")
                 if not open_tax_lots_created:
-                    print(
-                        "Warning: Failed to create open tax lots sheet, but continuing..."
-                    )
+                    logger.warning("Failed to create open tax lots sheet, but continuing...")
 
                 closed_tax_lots_created = self.create_tax_lots_sheet(lot_type="closed")
                 if not closed_tax_lots_created:
-                    print(
-                        "Warning: Failed to create closed tax lots sheet, but continuing..."
-                    )
+                    logger.warning("Failed to create closed tax lots sheet, but continuing...")
             else:
-                print("Tax lots sheets creation skipped (generateTaxLotsSheets=False)")
+                logger.info("Tax lots sheets creation skipped (generateTaxLotsSheets=False)")
                 
             # create securities info sheet
-            print("Creating securities info sheet...")
+            logger.info("Creating securities info sheet...")
             securities_info_created = self.create_securities_info_sheet()
             if securities_info_created is None or securities_info_created.empty:
-                print(
-                    "Warning: Failed to create securities info sheet, but continuing..."
-                )
+                logger.warning("Failed to create securities info sheet, but continuing...")
             else:
                 # generate securities type column
                 securities_info_df = self.generate_securities_type_column(securities_info_created)
                 # combine with sheet
                 combined_success = self.combine_securities_info_with_sheet(securities_info_df)
                 if not combined_success:
-                    print(
-                        "Warning: Failed to update securities info sheet with data, but continuing..."
-                    )
+                    logger.warning("Failed to update securities info sheet with data, but continuing...")
 
-            print("Google Sheets data upload process completed.")
+            logger.info("Google Sheets data upload process completed.")
             return True
 
-        except Exception as e:
-            print(f"Critical error in run method: {e}")
+        except Exception:
+            logger.exception("Critical error in run method.")
             return False

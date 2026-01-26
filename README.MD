@@ -113,6 +113,7 @@ The application generates CSV files containing the fetched financial data. Files
 - `open_tax_lots.csv`: Contains open tax lots data including symbols, quantities, cost basis, and unrealized gain/loss information.
 - `closed_tax_lots.csv`: Contains closed tax lots data including symbols, quantities, cost basis, realized gain/loss, and close dates.
 - `holdings.csv`: Contains current portfolio holdings with position details, values, and performance metrics.
+- `Securities Info.csv`: Contains tickers, current value and type of security of the tickers.
 
 ### Google Sheets Integration
 
@@ -121,6 +122,7 @@ When Google Sheets integration is enabled, the application automatically creates
 - **Holdings Worksheet**: Displays current portfolio positions with formatted currency columns (e.g., average share price, total cost, current value, unrealized gain) and percentage columns (e.g., unrealized gain percent, maintenance margin percent).
 - **Open Tax Lots Worksheet**: Shows open tax lots with proper data type handling and formatting.
 - **Closed Tax Lots Worksheet**: Presents closed tax lots data, including realized gains/losses.
+- **Securities Info worksheet**: Shows just tickers, current value and security type of tickers.
 
 Worksheets are automatically formatted with USD currency patterns and percentage displays for better readability. Data is cleared and refreshed on each run to ensure up-to-date information.
 
@@ -162,6 +164,8 @@ The application also uses a `state.json` file for runtime settings that can be m
 - `CREATE_CSV_FILES`: Whether to generate CSV files
 - `GENERATE_TAX_LOTS_SHEETS`: Whether to create tax lots worksheets in Google Sheets
 - `USE_DATABASE`: A feature coming soon that tracks stocks via a simple SQLITE database for a future RAG architecture plan.
+- `USE_LOGGING`: Turns on logging for the app (will also output in the terminal)
+- `LOG_FILE_NAME`: Controls what you want to call the log file (defaults to app.log)
 
 Modify `./config/state.json` to customize behavior on the fly. The file is checked and created by the `checkForState` module on startup.
 
@@ -202,7 +206,6 @@ M1Finance_Fetch/
 ## Upcoming Features
 
 ### In Development
-- Comprehensive Logging: Structured logging with configurable levels
 - Data Validation: Schema validation for API responses
 
 ### Planned
@@ -222,17 +225,6 @@ M1Finance_Fetch/
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-<!--### Development Setup
-
- 1. Follow the installation steps above
-2. Install additional development dependencies:
-   ```bash
-   pip install pytest black flake8 mypy
-   ```
-3. Run tests: `pytest`
-4. Format code: `black .`
-5. Lint code: `flake8` -->
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -244,5 +236,5 @@ This tool is not officially affiliated with M1 Finance. Use at your own risk. Al
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/hbowlby1/M1Finance_Fetch/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hbowlby1/M1Finance_Fetch/discussions)
+<!-- - **Discussions**: [GitHub Discussions](https://github.com/hbowlby1/M1Finance_Fetch/discussions) -->
 - **Security**: See SECURITY.md for security-related concerns
